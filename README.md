@@ -26,7 +26,7 @@ Was going through Docker while setting up my home lab and wanted to park the not
 
 ## 📦 What is Docker?
 
-> Docker lets you package an app and everything it needs into a self-contained box called a **container**. It runs the same way everywhere — your Mac, your Raspberry Pi, a cloud server.
+> Docker lets you package an app and everything it needs into a self-contained box called a **container**. It runs the same way everywhere —  Mac, , a cloud server.
 
 ### The Core Analogies
 
