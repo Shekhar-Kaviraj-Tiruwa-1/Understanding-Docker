@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker & Containers — Visual Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #151820;
+    --surface2: #1c2030;
+    --border: #252a3a;
+    --docker: #2496ed;
+    --docker-dim: #1a6baa;
+    --green: #26c26b;
+    --orange: #f5a623;
+    --red: #e85d5d;
+    --purple: #9b7ef8;
+    --yellow: #f5d020;
+    --text: #e8ecf4;
+    --muted: #6b7694;
+    --accent: #2496ed;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 32px;
+  }
+  .nav-logo {
+    font-size: 18px; font-weight: 800; color: var(--docker);
+    letter-spacing: -0.5px; margin-right: 16px;
+  }
+  .nav-tab {
+    padding: 6px 16px; border-radius: 6px; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    transition: all 0.2s; border: 1px solid transparent;
+    font-family: 'Syne', sans-serif;
+    background: none;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--docker); background: rgba(36,150,237,0.1); border-color: rgba(36,150,237,0.3); }
+
+  /* ── SECTIONS ── */
+  section { display: none; padding: 48px 32px; max-width: 1100px; margin: 0 auto; }
+  section.active { display: block; }
+
+  .section-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--docker);
+    margin-bottom: 10px;
+  }
+  .section-headline {
+    font-size: clamp(28px, 4vw, 42px); font-weight: 800;
+    line-height: 1.1; color: var(--text); margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 16px; color: var(--muted); line-height: 1.6; max-width: 620px;
+    margin-bottom: 48px;
+  }
+
+  /* ── ANALOGY CARD ── */
+  .analogy-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 700px) { .analogy-grid { grid-template-columns: 1fr; } }
+
+  .analogy-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .analogy-card:hover { border-color: var(--docker); transform: translateY(-2px); }
+  .analogy-icon { font-size: 36px; margin-bottom: 14px; }
+  .analogy-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+  }
+  .analogy-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .analogy-body { font-size: 14px; color: var(--muted); line-height: 1.65; }
+  .analogy-highlight { color: var(--text); font-weight: 600; }
+
+  /* ── VS DIVIDER ── */
+  .vs-row {
+    display: flex; align-items: center; gap: 20px; margin-bottom: 48px;
+  }
+  .vs-box {
+    flex: 1; background: var(--surface); border-radius: 14px;
+    padding: 24px; border: 1px solid var(--border);
+  }
+  .vs-box.good { border-color: rgba(38,194,107,0.3); background: rgba(38,194,107,0.04); }
+  .vs-box.bad  { border-color: rgba(232,93,93,0.3);  background: rgba(232,93,93,0.04); }
+  .vs-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .vs-label.good { color: var(--green); }
+  .vs-label.bad  { color: var(--red); }
+  .vs-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .vs-list { list-style: none; }
+  .vs-list li {
+    font-size: 14px; color: var(--muted); padding: 5px 0;
+    display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+  }
+  .vs-list li::before { flex-shrink: 0; margin-top: 2px; }
+  .vs-list.good li::before { content: "✓"; color: var(--green); }
+  .vs-list.bad  li::before { content: "✗"; color: var(--red); }
+  .vs-vs {
+    font-size: 22px; font-weight: 800; color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  /* ── LAYER DIAGRAM ── */
+  .layer-diagram {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; margin-bottom: 48px;
+  }
+  .layer-diagram-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 24px;
+  }
+  .layers { display: flex; flex-direction: column; gap: 8px; }
+  .layer {
+    border-radius: 10px; padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px;
+    animation: slideIn 0.4s ease both;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .layer-0 { background: rgba(36,150,237,0.15); border: 1px solid rgba(36,150,237,0.4); animation-delay: 0.0s; }
+  .layer-1 { background: rgba(155,126,248,0.12); border: 1px solid rgba(155,126,248,0.3); animation-delay: 0.1s; }
+  .layer-2 { background: rgba(38,194,107,0.1); border: 1px solid rgba(38,194,107,0.25); animation-delay: 0.2s; }
+  .layer-3 { background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.25); animation-delay: 0.3s; }
+  .layer-4 { background: rgba(232,93,93,0.08); border: 1px solid rgba(232,93,93,0.2); animation-delay: 0.4s; }
+  .layer-icon { font-size: 22px; flex-shrink: 0; }
+  .layer-info { flex: 1; }
+  .layer-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .layer-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .layer-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: rgba(255,255,255,0.06); color: var(--muted);
+  }
+
+  /* ── CONTAINER PLAYGROUND ── */
+  .playground {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; margin-bottom: 32px;
+  }
+  .playground-header {
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    padding: 16px 24px; display: flex; align-items: center; gap: 12px;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-red { background: #e85d5d; }
+  .dot-yellow { background: #f5a623; }
+  .dot-green { background: #26c26b; }
+  .playground-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+  .playground-body { padding: 28px; }
+
+  /* ── HOST MACHINE ── */
+  .host-machine {
+    border: 2px dashed var(--border); border-radius: 14px;
+    padding: 24px; position: relative;
+  }
+  .host-label {
+    position: absolute; top: -12px; left: 20px;
+    background: var(--surface); padding: 0 10px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .host-info {
+    font-size: 13px; color: var(--muted); margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .containers-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 700px) { .containers-row { grid-template-columns: 1fr; } }
+
+  .container-box {
+    border-radius: 12px; padding: 18px;
+    border: 1px solid; position: relative; overflow: hidden;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .container-box:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .container-box.blue  { background: rgba(36,150,237,0.08); border-color: rgba(36,150,237,0.35); }
+  .container-box.green { background: rgba(38,194,107,0.08); border-color: rgba(38,194,107,0.35); }
+  .container-box.purple{ background: rgba(155,126,248,0.08); border-color: rgba(155,126,248,0.35); }
+  .container-box-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 10px; opacity: 0.7;
+  }
+  .blue .container-box-tag  { color: var(--docker); }
+  .green .container-box-tag { color: var(--green); }
+  .purple .container-box-tag{ color: var(--purple); }
+  .container-box-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .container-box-detail { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; line-height: 1.6; }
+  .status-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--green);
+    margin-right: 6px; animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
+  .container-layers-mini {
+    margin-top: 12px; display: flex; flex-direction: column; gap: 3px;
+  }
+  .clayer {
+    height: 6px; border-radius: 3px; opacity: 0.6;
+  }
+  .clayer.app  { background: var(--green);  width: 60%; }
+  .clayer.deps { background: var(--orange); width: 80%; }
+  .clayer.base { background: var(--docker); width: 100%; }
+
+  /* ── COMMAND REFERENCE ── */
+  .cmd-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;
+  }
+  @media (max-width: 700px) { .cmd-grid { grid-template-columns: 1fr; } }
+  .cmd-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .cmd-card:hover { border-color: var(--docker); }
+  .cmd-category {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--docker); margin-bottom: 14px;
+  }
+  .cmd-row { display: flex; flex-direction: column; gap: 10px; }
+  .cmd-item { display: flex; flex-direction: column; gap: 4px; }
+  .cmd-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: #7dd3fc;
+    background: rgba(125,211,252,0.06); border-radius: 6px;
+    padding: 6px 10px;
+  }
+  .cmd-desc { font-size: 12px; color: var(--muted); padding: 0 2px; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; margin-bottom: 32px;
+    overflow-x: auto;
+  }
+  .flow-step {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; flex: 1; min-width: 100px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .flow-step:nth-child(1) { animation-delay: 0.0s; }
+  .flow-step:nth-child(3) { animation-delay: 0.15s; }
+  .flow-step:nth-child(5) { animation-delay: 0.3s; }
+  .flow-step:nth-child(7) { animation-delay: 0.45s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .flow-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .flow-icon.f1 { background: rgba(36,150,237,0.15); }
+  .flow-icon.f2 { background: rgba(155,126,248,0.15); }
+  .flow-icon.f3 { background: rgba(38,194,107,0.15); }
+  .flow-icon.f4 { background: rgba(245,166,35,0.15); }
+  .flow-label { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; }
+  .flow-sub { font-size: 11px; color: var(--muted); text-align: center; font-family: 'JetBrains Mono', monospace; }
+  .flow-arrow {
+    font-size: 20px; color: var(--border); flex-shrink: 0;
+    padding: 0 4px; margin-bottom: 20px;
+  }
+
+  /* ── INTERACTIVE DEMO ── */
+  .demo-area {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; margin-bottom: 32px;
+  }
+  .demo-header {
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    padding: 16px 24px; display: flex; align-items: center; gap: 10px;
+  }
+  .demo-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .demo-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+    background: rgba(38,194,107,0.1); color: var(--green);
+    border: 1px solid rgba(38,194,107,0.3);
+  }
+  .demo-body { padding: 24px; display: flex; gap: 24px; }
+  @media (max-width: 700px) { .demo-body { flex-direction: column; } }
+  .demo-left { flex: 1; }
+  .demo-right { flex: 1; }
+  .demo-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+  }
+  .demo-btns { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .demo-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: #7dd3fc; cursor: pointer; text-align: left;
+    transition: all 0.15s; font-weight: 600;
+  }
+  .demo-btn:hover { border-color: var(--docker); background: rgba(36,150,237,0.08); }
+  .demo-btn.active { border-color: var(--docker); background: rgba(36,150,237,0.12); }
+  .demo-output {
+    background: #0a0c10; border-radius: 10px; padding: 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: #a8b4c8; line-height: 1.8; min-height: 160px;
+    border: 1px solid #1a1e2a;
+  }
+  .out-green { color: var(--green); }
+  .out-blue  { color: #7dd3fc; }
+  .out-yellow{ color: var(--yellow); }
+  .out-muted { color: var(--muted); }
+  .out-red   { color: var(--red); }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; margin-bottom: 32px;
+  }
+  .compare-table th {
+    padding: 14px 20px; font-size: 12px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .compare-table th.docker-col { color: var(--docker); }
+  .compare-table th.vm-col { color: var(--orange); }
+  .compare-table td {
+    padding: 13px 20px; font-size: 14px; color: var(--muted);
+    border-bottom: 1px solid var(--border); line-height: 1.5;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child { color: var(--text); font-weight: 600; }
+  .good-val { color: var(--green); }
+  .bad-val  { color: var(--red); }
+
+  /* ── TIPS BOX ── */
+  .tip-box {
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 20px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .tip-box.info   { background: rgba(36,150,237,0.08); border: 1px solid rgba(36,150,237,0.2); }
+  .tip-box.warn   { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.2); }
+  .tip-box.success{ background: rgba(38,194,107,0.08); border: 1px solid rgba(38,194,107,0.2); }
+  .tip-icon { font-size: 20px; flex-shrink: 0; }
+  .tip-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .tip-text strong { color: var(--text); }
+
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">🐳 Docker</div>
+  <button class="nav-tab active" onclick="showTab('what')">What is Docker?</button>
+  <button class="nav-tab" onclick="showTab('how')">How it Works</button>
+  <button class="nav-tab" onclick="showTab('commands')">Commands</button>
+  <button class="nav-tab" onclick="showTab('vs')">Docker vs VM</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 1: WHAT IS DOCKER                                 -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="what" class="active">
+  <div class="section-title">Concept 01</div>
+  <h1 class="section-headline">What is Docker?</h1>
+  <p class="section-sub">Docker lets you package an app and everything it needs into a self-contained box called a <strong>container</strong>. It runs the same way everywhere — your Mac, your Raspberry Pi, a cloud server.</p>
+
+  <div class="analogy-grid">
+    <div class="analogy-card">
+      <div class="analogy-icon">📦</div>
+      <div class="analogy-label">The Analogy</div>
+      <div class="analogy-title">Shipping Container</div>
+      <div class="analogy-body">Before shipping containers, cargo had to be individually packed onto each ship in different ways. <span class="analogy-highlight">Docker containers work the same way</span> — pack your app once, ship it anywhere. The ship (your computer) doesn't care what's inside.</div>
+    </div>
+    <div class="analogy-card">
+      <div class="analogy-icon">🍱</div>
+      <div class="analogy-label">Another Way to Think of It</div>
+      <div class="analogy-title">Packed Lunchbox</div>
+      <div class="analogy-body">A container is like a lunchbox — it has <span class="analogy-highlight">everything the app needs</span> packed inside: the food (code), the utensils (libraries), and the napkin (config). Open any lunchbox and it works the same.</div>
+    </div>
+    <div class="analogy-card">
+      <div class="analogy-icon">🏠</div>
+      <div class="analogy-label">Without Docker</div>
+      <div class="analogy-title">The "Works on My Machine" Problem</div>
+      <div class="analogy-body">App works on your laptop. Fails on the server. Fails on your Raspberry Pi. Everyone has <span class="analogy-highlight">different versions of Python, Node, libraries</span>. Docker eliminates this — the container includes everything.</div>
+    </div>
+    <div class="analogy-card">
+      <div class="analogy-icon">🧱</div>
+      <div class="analogy-label">Key Concept</div>
+      <div class="analogy-title">Image vs Container</div>
+      <div class="analogy-body">An <span class="analogy-highlight">Image</span> is the recipe (read-only blueprint). A <span class="analogy-highlight">Container</span> is the meal you made from that recipe (a running instance). One image can spawn many containers simultaneously.</div>
+    </div>
+  </div>
+
+  <!-- Live container playground -->
+  <div class="playground">
+    <div class="playground-header">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+      <div class="playground-title">Your Mac Mini — Running 3 Containers Simultaneously</div>
+    </div>
+    <div class="playground-body">
+      <div class="host-machine">
+        <div class="host-label">Host Machine: Mac Mini M4 · macOS</div>
+        <div class="host-info">Docker Engine → manages all containers below ↓</div>
+        <div class="containers-row">
+          <div class="container-box blue">
+            <div class="container-box-tag">Container 1</div>
+            <div class="container-box-name">🕳️ Pi-hole</div>
+            <div class="container-box-detail">
+              <span class="status-dot"></span>running<br>
+              Port: 53 (DNS)<br>
+              Port: 80 (Admin UI)<br>
+              Image: pihole/pihole
+            </div>
+            <div class="container-layers-mini">
+              <div class="clayer app"></div>
+              <div class="clayer deps"></div>
+              <div class="clayer base"></div>
+            </div>
+          </div>
+          <div class="container-box green">
+            <div class="container-box-tag">Container 2</div>
+            <div class="container-box-name">☁️ Nextcloud</div>
+            <div class="container-box-detail">
+              <span class="status-dot"></span>running<br>
+              Port: 8080 (Web UI)<br>
+              Volume: /data<br>
+              Image: nextcloud
+            </div>
+            <div class="container-layers-mini">
+              <div class="clayer app"></div>
+              <div class="clayer deps"></div>
+              <div class="clayer base"></div>
+            </div>
+          </div>
+          <div class="container-box purple">
+            <div class="container-box-tag">Container 3</div>
+            <div class="container-box-name">🔐 Vaultwarden</div>
+            <div class="container-box-detail">
+              <span class="status-dot"></span>running<br>
+              Port: 8888 (Web UI)<br>
+              Volume: /vw-data<br>
+              Image: vaultwarden/server
+            </div>
+            <div class="container-layers-mini">
+              <div class="clayer app"></div>
+              <div class="clayer deps"></div>
+              <div class="clayer base"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box info">
+    <div class="tip-icon">💡</div>
+    <div class="tip-text"><strong>Key insight:</strong> All three containers above share the same Mac Mini hardware and macOS kernel — but they are completely isolated from each other. Pi-hole can't see Nextcloud's files. Each thinks it's running alone.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 2: HOW IT WORKS                                   -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="how">
+  <div class="section-title">Concept 02</div>
+  <h1 class="section-headline">How Docker Works</h1>
+  <p class="section-sub">From writing a Dockerfile to a running container — here's the complete journey your app takes.</p>
+
+  <!-- Flow -->
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-icon f1">📝</div>
+      <div class="flow-label">Dockerfile</div>
+      <div class="flow-sub">You write the recipe</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon f2">🏗️</div>
+      <div class="flow-label">docker build</div>
+      <div class="flow-sub">Docker bakes the image</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon f3">📦</div>
+      <div class="flow-label">Image</div>
+      <div class="flow-sub">Frozen snapshot</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-icon f4">🚀</div>
+      <div class="flow-label">docker run</div>
+      <div class="flow-sub">Container comes alive</div>
+    </div>
+  </div>
+
+  <!-- Layer diagram -->
+  <div class="layer-diagram">
+    <div class="layer-diagram-title">🗂 Container Layer Structure — What's Inside Every Image</div>
+    <div class="layers">
+      <div class="layer layer-3">
+        <div class="layer-icon">🖥️</div>
+        <div class="layer-info">
+          <div class="layer-name">Your App Code</div>
+          <div class="layer-desc">The actual application — your Python script, Node.js server, Pi-hole config, etc.</div>
+        </div>
+        <div class="layer-tag">READ/WRITE</div>
+      </div>
+      <div class="layer layer-2">
+        <div class="layer-icon">📚</div>
+        <div class="layer-info">
+          <div class="layer-name">Dependencies & Libraries</div>
+          <div class="layer-desc">npm packages, pip libraries, apt-installed tools — exactly the versions your app needs</div>
+        </div>
+        <div class="layer-tag">READ ONLY</div>
+      </div>
+      <div class="layer layer-1">
+        <div class="layer-icon">⚙️</div>
+        <div class="layer-info">
+          <div class="layer-name">Runtime Environment</div>
+          <div class="layer-desc">Node.js 20, Python 3.11, Java 17 — whatever language runtime the app needs</div>
+        </div>
+        <div class="layer-tag">READ ONLY</div>
+      </div>
+      <div class="layer layer-0">
+        <div class="layer-icon">🐧</div>
+        <div class="layer-info">
+          <div class="layer-name">Base OS Layer</div>
+          <div class="layer-desc">A minimal Linux distro (Ubuntu, Alpine, Debian) — just the essentials, no desktop GUI</div>
+        </div>
+        <div class="layer-tag">READ ONLY</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive demo -->
+  <div class="demo-area">
+    <div class="demo-header">
+      <div class="demo-title">Interactive — Click a command to see its output</div>
+      <div class="demo-badge">SIMULATED</div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-left">
+        <div class="demo-label">Commands</div>
+        <div class="demo-btns">
+          <button class="demo-btn active" onclick="showOutput('pull')">docker pull nginx</button>
+          <button class="demo-btn" onclick="showOutput('run')">docker run -d -p 8080:80 nginx</button>
+          <button class="demo-btn" onclick="showOutput('ps')">docker ps</button>
+          <button class="demo-btn" onclick="showOutput('logs')">docker logs my-nginx</button>
+          <button class="demo-btn" onclick="showOutput('stop')">docker stop my-nginx</button>
+        </div>
+      </div>
+      <div class="demo-right">
+        <div class="demo-label">Terminal Output</div>
+        <div class="demo-output" id="demo-out">
+<span class="out-muted">$ </span><span class="out-blue">docker pull nginx</span>
+<span class="out-muted">Using default tag: latest</span>
+<span class="out-muted">latest: Pulling from library/nginx</span>
+<span class="out-green">a803e7c4b030</span>: Pull complete
+<span class="out-green">8b625c47d697</span>: Pull complete
+<span class="out-green">4d3239651a63</span>: Pull complete
+<span class="out-muted">Digest: sha256:abc123...</span>
+<span class="out-green">Status: Downloaded newer image for nginx:latest</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box warn">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>Important:</strong> Containers are ephemeral by default — if you delete a container, all data inside it is gone. To persist data (like Pi-hole's blocklists or Nextcloud's files), you use <strong>volumes</strong> — a folder on your host machine mounted into the container.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 3: COMMANDS                                       -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="commands">
+  <div class="section-title">Reference 03</div>
+  <h1 class="section-headline">Docker Command Reference</h1>
+  <p class="section-sub">Every command you'll actually use, grouped by what you're trying to do.</p>
+
+  <div class="cmd-grid">
+    <div class="cmd-card">
+      <div class="cmd-category">📦 Images</div>
+      <div class="cmd-row">
+        <div class="cmd-item">
+          <div class="cmd-code">docker pull nginx</div>
+          <div class="cmd-desc">Download an image from Docker Hub</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker images</div>
+          <div class="cmd-desc">List all downloaded images on your machine</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker rmi nginx</div>
+          <div class="cmd-desc">Delete a downloaded image</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker build -t myapp .</div>
+          <div class="cmd-desc">Build an image from a Dockerfile in current folder</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-category">🚀 Running Containers</div>
+      <div class="cmd-row">
+        <div class="cmd-item">
+          <div class="cmd-code">docker run nginx</div>
+          <div class="cmd-desc">Run a container (foreground, blocking)</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker run -d nginx</div>
+          <div class="cmd-desc">-d = detached, runs in background</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker run -p 8080:80 nginx</div>
+          <div class="cmd-desc">Map host port 8080 → container port 80</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker run --name mybox nginx</div>
+          <div class="cmd-desc">Give the container a friendly name</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-category">🔍 Inspecting Containers</div>
+      <div class="cmd-row">
+        <div class="cmd-item">
+          <div class="cmd-code">docker ps</div>
+          <div class="cmd-desc">List only running containers</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker ps -a</div>
+          <div class="cmd-desc">List ALL containers including stopped ones</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker logs mybox</div>
+          <div class="cmd-desc">Show a container's output / logs</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker logs -f mybox</div>
+          <div class="cmd-desc">Follow logs live (like tail -f)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-category">🛑 Stopping & Cleaning Up</div>
+      <div class="cmd-row">
+        <div class="cmd-item">
+          <div class="cmd-code">docker stop mybox</div>
+          <div class="cmd-desc">Gracefully stop a running container</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker start mybox</div>
+          <div class="cmd-desc">Start a stopped container again</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker rm mybox</div>
+          <div class="cmd-desc">Delete a stopped container</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker system prune</div>
+          <div class="cmd-desc">Remove all stopped containers + unused images</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-category">🔧 Inside a Container</div>
+      <div class="cmd-row">
+        <div class="cmd-item">
+          <div class="cmd-code">docker exec -it mybox bash</div>
+          <div class="cmd-desc">Open a terminal shell inside a running container</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker exec mybox ls /etc</div>
+          <div class="cmd-desc">Run a one-off command inside a container</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker cp file.txt mybox:/app/</div>
+          <div class="cmd-desc">Copy a file from host into a container</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker inspect mybox</div>
+          <div class="cmd-desc">Show full details (IPs, mounts, config) as JSON</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-category">🗃️ Docker Compose</div>
+      <div class="cmd-row">
+        <div class="cmd-item">
+          <div class="cmd-code">docker-compose up -d</div>
+          <div class="cmd-desc">Start all services in docker-compose.yml</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker-compose down</div>
+          <div class="cmd-desc">Stop and remove all compose containers</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker-compose logs -f</div>
+          <div class="cmd-desc">Follow live logs for all services</div>
+        </div>
+        <div class="cmd-item">
+          <div class="cmd-code">docker-compose ps</div>
+          <div class="cmd-desc">Status of all compose services</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box success">
+    <div class="tip-icon">✅</div>
+    <div class="tip-text"><strong>Home lab tip:</strong> For services you want running 24/7 (Pi-hole, Nextcloud), always add <strong>--restart unless-stopped</strong> to your docker run command. This makes the container restart automatically if Docker restarts or your Ubuntu VM reboots.</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 4: DOCKER VS VM                                   -->
+<!-- ══════════════════════════════════════════════════════ -->
+<section id="vs">
+  <div class="section-title">Comparison 04</div>
+  <h1 class="section-headline">Docker vs Virtual Machine</h1>
+  <p class="section-sub">Both Docker and VMs isolate software — but they work very differently. Since you're using UTM to run Ubuntu, this comparison is especially relevant to you.</p>
+
+  <div class="vs-row">
+    <div class="vs-box bad">
+      <div class="vs-label bad">Virtual Machine (UTM)</div>
+      <div class="vs-title">🖥️ Full OS, heavy weight</div>
+      <ul class="vs-list bad">
+        <li>Boots a complete operating system (Ubuntu, Windows, etc.)</li>
+        <li>Needs its own RAM allocation (you gave 4GB to Ubuntu)</li>
+        <li>Startup takes 30–60 seconds — full OS boot</li>
+        <li>Takes gigabytes of disk space per VM</li>
+        <li>Has its own kernel — full isolation from host</li>
+      </ul>
+    </div>
+    <div class="vs-vs">vs</div>
+    <div class="vs-box good">
+      <div class="vs-label good">Docker Container</div>
+      <div class="vs-title">📦 Shares kernel, lightweight</div>
+      <ul class="vs-list good">
+        <li>Shares the host OS kernel — no full OS needed</li>
+        <li>Uses only the RAM the app actually needs (often 50–200MB)</li>
+        <li>Starts in milliseconds — no OS boot</li>
+        <li>Image is megabytes, not gigabytes</li>
+        <li>Process-level isolation — isolated but lightweight</li>
+      </ul>
+    </div>
+  </div>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th class="docker-col">🐳 Docker Container</th>
+        <th class="vm-col">🖥️ Virtual Machine</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Startup time</td>
+        <td class="good-val">Milliseconds</td>
+        <td class="bad-val">30–60 seconds</td>
+      </tr>
+      <tr>
+        <td>RAM usage</td>
+        <td class="good-val">Only what app needs</td>
+        <td class="bad-val">Full OS overhead (~1–2GB)</td>
+      </tr>
+      <tr>
+        <td>Disk space</td>
+        <td class="good-val">Megabytes (shared layers)</td>
+        <td class="bad-val">Gigabytes per VM</td>
+      </tr>
+      <tr>
+        <td>Isolation</td>
+        <td>Process-level (strong)</td>
+        <td class="good-val">Full kernel isolation (strongest)</td>
+      </tr>
+      <tr>
+        <td>Portability</td>
+        <td class="good-val">Run anywhere Docker is installed</td>
+        <td>Tied to hypervisor format</td>
+      </tr>
+      <tr>
+        <td>Run multiple instances</td>
+        <td class="good-val">Easy — 10+ containers on one machine</td>
+        <td class="bad-val">Limited by RAM/CPU overhead</td>
+      </tr>
+      <tr>
+        <td>Best for</td>
+        <td class="good-val">Apps, services, microservices</td>
+        <td>Full OS testing, different OSes</td>
+      </tr>
+      <tr>
+        <td>Your use case</td>
+        <td class="good-val">Pi-hole, Nextcloud, Vaultwarden, Plex</td>
+        <td>Running Ubuntu on your Mac Mini</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box info">
+    <div class="tip-icon">🏠</div>
+    <div class="tip-text"><strong>Your home lab strategy:</strong> Use UTM (VM) to run Ubuntu on your Mac Mini as the foundation. Then run all your home lab services <strong>inside Docker containers within that Ubuntu VM</strong>. You get the best of both — a proper Linux environment from the VM, and lightweight, easy-to-manage services from Docker.</div>
+  </div>
+
+  <div class="tip-box success">
+    <div class="tip-icon">🚀</div>
+    <div class="tip-text"><strong>Real example — running Pi-hole in Docker:</strong><br><br>
+    <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#7dd3fc;">
+    docker run -d --name pihole \<br>
+    &nbsp;&nbsp;-p 53:53/tcp -p 53:53/udp -p 80:80 \<br>
+    &nbsp;&nbsp;-e TZ="America/Toronto" \<br>
+    &nbsp;&nbsp;-v pihole_data:/etc/pihole \<br>
+    &nbsp;&nbsp;--restart unless-stopped \<br>
+    &nbsp;&nbsp;pihole/pihole:latest
+    </span><br><br>
+    This one command downloads and starts Pi-hole — no manual installation needed. The <strong>-v</strong> flag saves its data permanently so it survives container restarts.
+    </div>
+  </div>
+</section>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+const outputs = {
+  pull: `<span class="out-muted">$ </span><span class="out-blue">docker pull nginx</span>
+<span class="out-muted">Using default tag: latest</span>
+<span class="out-muted">latest: Pulling from library/nginx</span>
+<span class="out-green">a803e7c4b030</span>: Pull complete
+<span class="out-green">8b625c47d697</span>: Pull complete
+<span class="out-green">4d3239651a63</span>: Pull complete
+<span class="out-muted">Digest: sha256:abc123...</span>
+<span class="out-green">Status: Downloaded newer image for nginx:latest</span>`,
+
+  run: `<span class="out-muted">$ </span><span class="out-blue">docker run -d -p 8080:80 --name my-nginx nginx</span>
+<span class="out-yellow">7f3d9a1b2c4e8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c</span>
+<span class="out-muted">
+Container started in background.
+Visit http://localhost:8080 to see Nginx.</span>`,
+
+  ps: `<span class="out-muted">$ </span><span class="out-blue">docker ps</span>
+<span class="out-muted">CONTAINER ID   IMAGE   COMMAND                  STATUS         PORTS                  NAMES</span>
+<span class="out-green">7f3d9a1b2c4e</span>   <span class="out-yellow">nginx</span>   "/docker-entrypoint.…"   Up 2 minutes   <span class="out-blue">0.0.0.0:8080->80/tcp</span>   my-nginx`,
+
+  logs: `<span class="out-muted">$ </span><span class="out-blue">docker logs my-nginx</span>
+<span class="out-muted">/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration</span>
+<span class="out-muted">/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/</span>
+<span class="out-green">2026/02/20 10:30:01</span> [notice] 1#1: start worker processes
+<span class="out-green">192.168.2.100</span> - - [20/Feb/2026:10:31:05 +0000] "GET / HTTP/1.1" <span class="out-yellow">200</span> 615 "-"`,
+
+  stop: `<span class="out-muted">$ </span><span class="out-blue">docker stop my-nginx</span>
+my-nginx
+<span class="out-muted">
+Container stopped. Run 'docker start my-nginx' to restart it.
+Run 'docker rm my-nginx' to delete it entirely.</span>`
+};
+
+function showOutput(cmd) {
+  document.getElementById('demo-out').innerHTML = outputs[cmd];
+  document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
