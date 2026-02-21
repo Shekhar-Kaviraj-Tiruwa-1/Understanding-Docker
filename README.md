@@ -2,8 +2,7 @@
 
 # 🐳 Docker & Containers — Visual Guide
 
-**A visual, hands-on guide to understanding Docker from first principles.**
-Built for home-labbers, self-hosters, and anyone who wants to truly *get* containers.
+Was going through Docker while setting up my home lab and wanted to park the notes somewhere useful. This is that place.
 
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
@@ -449,6 +448,6 @@ docker volume prune              (remove unused volumes)
 
 <div align="center">
 
-Made to understand Docker from first principles · Built for home labs and self-hosters
+Notes parked while going through Docker during a home lab setup.
 
 </div>
